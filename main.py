@@ -45,7 +45,6 @@ def main():
     yandex_api_key = environ["YANDEX_API"]
     parser = ArgumentParser()
     parser.add_argument("place", type=str, help="Место, в радиусе которого будут найдены землетрясения")
-    parser.add_argument("place", type=str, help="Место, в радиусе которого будут найдены землетрясения")
     parser.add_argument("--maxradius", type=str, help="Максимальный радиус в котором будут найдены землетрясения", default=180)
     parser.add_argument("--starttime", type=str, help="Дата (YYYY-MM-DD), от которой будут найдены землетрясения", default=date.today())
     parser.add_argument("--endtime", type=str, help="Дата (YYYY-MM-DD), до которой будут найдены землетрясения", default=date.today())
