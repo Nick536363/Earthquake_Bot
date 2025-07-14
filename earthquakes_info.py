@@ -3,7 +3,7 @@ from datetime import date
 from argparse import ArgumentParser
 from os import environ
 from dotenv import load_dotenv, find_dotenv
-from time import sleep
+from pprint import pprint
 
 
 def get_coords(place: str, apikey: str):
@@ -21,7 +21,7 @@ def get_coords(place: str, apikey: str):
     lon, lat = most_relevant['GeoObject']['Point']['pos'].split(" ")
     return lon, lat
 
-def get_data(starttime: str, endtime: str, latitude: int, longitude: int, maxradius: int):
+def get_earthquakes(starttime: str, endtime: str, latitude: int, longitude: int):
     data = []
     url = "https://earthquake.usgs.gov/fdsnws/event/1/query"
     params = {
@@ -31,7 +31,7 @@ def get_data(starttime: str, endtime: str, latitude: int, longitude: int, maxrad
         "endtime":endtime,
         "latitude": latitude,
         "longitude": longitude,
-        "maxradius": maxradius
+        "maxradius": 180
     }
     response = get(url=url, params=params)
     response.raise_for_status()
@@ -44,31 +44,18 @@ def get_data(starttime: str, endtime: str, latitude: int, longitude: int, maxrad
 
 
 
-def main():
+def find_recent_earthquakes():
     # Получение данных для запроса
     load_dotenv(find_dotenv())
     yandex_api_key = environ["YANDEX_API"]
     parser = ArgumentParser()
     parser.add_argument("place", type=str, help="Место, в радиусе которого будут найдены землетрясения")
-    parser.add_argument("--maxradius", type=str, help="Максимальный радиус в котором будут найдены землетрясения", default=50)
     args = parser.parse_args()
     longitude, latitude = get_coords(args.place, apikey=yandex_api_key)
-    data = get_data(date.today(), date.today(), latitude, longitude, args.maxradius)
-    events_count = len(data)
-    # Основной цикл
-    while 1:
-        new_data = get_data(args.starttime, date.today(), latitude, longitude, args.maxradius)
-        new_events = len(new_data)
-        print(f"Кол-во землятресений - {events_count}")
-        print(f"Кол-во землятресений (new) - {new_events}")
-        if new_events > events_count:
-            print("Новое землетрясение!")
-            print(new_data[len(new_data)-1])
-            data = new_data
-            events_count = new_events
-        sleep(3)
+    last_earthquakes = get_earthquakes(f"{date.today().year}-{date.today().month}-{date.today().day-1}", date.today(), latitude, longitude)
+    pprint(last_earthquakes)
 
 
     
 if __name__ == "__main__":
-    main()
+    find_recent_earthquakes()
