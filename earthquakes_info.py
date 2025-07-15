@@ -1,5 +1,6 @@
 from requests import get
 from datetime import date
+from geopy import distance
 from argparse import ArgumentParser
 from os import environ
 from dotenv import load_dotenv, find_dotenv
@@ -21,6 +22,14 @@ def get_coords(place: str, apikey: str):
     lon, lat = most_relevant['GeoObject']['Point']['pos'].split(" ")
     return lon, lat
 
+
+def dist_compare(usr_lat: int, usr_lon: int, event_lat: int, event_lon: int):
+    user_coords = (usr_lat, usr_lon)
+    event_coords = (event_lat, event_lon)
+    print(user_coords, "\n", event_coords)
+    return round(distance.distance(user_coords, event_coords).km)
+
+
 def get_earthquakes(starttime: str, endtime: str, latitude: int, longitude: int):
     data = []
     url = "https://earthquake.usgs.gov/fdsnws/event/1/query"
@@ -31,21 +40,28 @@ def get_earthquakes(starttime: str, endtime: str, latitude: int, longitude: int)
         "endtime":endtime,
         "latitude": latitude,
         "longitude": longitude,
-        "maxradius": 180
+        "maxradiuskm": 20001,
     }
     response = get(url=url, params=params)
     response.raise_for_status()
     for event in response.json()["features"]:
+        event_latitude = event["geometry"]["coordinates"][1]
+        event_longitude = event["geometry"]["coordinates"][0]
         data.append({
+            "title": event["properties"]["title"],
             "place": event["properties"]["place"],
-            "coords": event["geometry"]["coordinates"]
-        })
+            "time": event["properties"]["time"],
+            "distance": dist_compare(latitude, longitude, event_latitude, event_longitude),
+            "map": f"{event["properties"]["url"]}/map",
+            "latitude": event_latitude,
+            "longitude": event_longitude
+            })
+
     return data
 
 
-
-def find_recent_earthquakes():
-    # Получение данных для запроса
+def find_recent_earthquakes(days_ago=1):
+    # Получение всех данных и формирование сообщения для отправки
     load_dotenv(find_dotenv())
     yandex_api_key = environ["YANDEX_API"]
     parser = ArgumentParser()
@@ -56,6 +72,5 @@ def find_recent_earthquakes():
     pprint(last_earthquakes)
 
 
-    
 if __name__ == "__main__":
     find_recent_earthquakes()
