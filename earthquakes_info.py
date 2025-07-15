@@ -1,5 +1,5 @@
 from requests import get
-from datetime import date
+from datetime import date, datetime
 from geopy import distance
 from os import environ
 from dotenv import load_dotenv, find_dotenv
@@ -48,10 +48,11 @@ def get_earthquakes(starttime: str, endtime: str, latitude: int, longitude: int)
     for event in response.json()["features"]:
         event_latitude = event["geometry"]["coordinates"][1]
         event_longitude = event["geometry"]["coordinates"][0]
+        formatted_date = datetime.fromtimestamp(event["properties"]["time"]/1000).strftime("%Y-%m-%d %H:%M:%S") #event["properties"]["time"]
         data.append({
             "title": event["properties"]["title"],
             "place": event["properties"]["place"],
-            "time": event["properties"]["time"],
+            "date": formatted_date,
             "distance": dist_compare(latitude, longitude, event_latitude, event_longitude),
             "map": f"{event["properties"]["url"]}/map",
             "latitude": event_latitude,
