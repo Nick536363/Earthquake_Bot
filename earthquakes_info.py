@@ -1,13 +1,12 @@
 from requests import get
 from datetime import date
 from geopy import distance
-from argparse import ArgumentParser
 from os import environ
 from dotenv import load_dotenv, find_dotenv
-from pprint import pprint
 
 
 def get_coords(place: str, apikey: str):
+    # Получение координат по названию места
     url = "https://geocode-maps.yandex.ru/1.x"
     params = {
         "geocode": place,
@@ -24,6 +23,7 @@ def get_coords(place: str, apikey: str):
 
 
 def dist_compare(usr_lat: int, usr_lon: int, event_lat: int, event_lon: int):
+    # Сравнение координат и получние дистанции между ними
     user_coords = (usr_lat, usr_lon)
     event_coords = (event_lat, event_lon)
     print(user_coords, "\n", event_coords)
@@ -31,6 +31,7 @@ def dist_compare(usr_lat: int, usr_lon: int, event_lat: int, event_lon: int):
 
 
 def get_earthquakes(starttime: str, endtime: str, latitude: int, longitude: int):
+    # Получение данных о последних землетрясениях
     data = []
     url = "https://earthquake.usgs.gov/fdsnws/event/1/query"
     params = {
@@ -60,17 +61,13 @@ def get_earthquakes(starttime: str, endtime: str, latitude: int, longitude: int)
     return data
 
 
-def find_recent_earthquakes(days_ago=1):
+def find_last_earthquakes(place: str, days_ago=1):
     # Получение всех данных и формирование сообщения для отправки
     load_dotenv(find_dotenv())
     yandex_api_key = environ["YANDEX_API"]
-    parser = ArgumentParser()
-    parser.add_argument("place", type=str, help="Место, в радиусе которого будут найдены землетрясения")
-    args = parser.parse_args()
-    longitude, latitude = get_coords(args.place, apikey=yandex_api_key)
-    last_earthquakes = get_earthquakes(f"{date.today().year}-{date.today().month}-{date.today().day-1}", date.today(), latitude, longitude)
-    pprint(last_earthquakes)
+    longitude, latitude = get_coords(place, apikey=yandex_api_key)
+    if not latitude or not longitude:
+        return None
+    last_earthquakes = get_earthquakes(f"{date.today().year}-{date.today().month}-{date.today().day-days_ago}", date.today(), latitude, longitude)
+    return last_earthquakes
 
-
-if __name__ == "__main__":
-    find_recent_earthquakes()
