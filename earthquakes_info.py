@@ -63,7 +63,7 @@ def get_earthquakes(starttime: str, endtime: str, latitude: int, longitude: int)
 
 
 def find_last_earthquakes(place: str, days_ago=1):
-    # Получение всех данных и формирование сообщения для отправки
+    # Получение всех данных и формирование данных для будущего сообщения
     load_dotenv(find_dotenv())
     yandex_api_key = environ["YANDEX_API"]
     longitude, latitude = get_coords(place, apikey=yandex_api_key)
