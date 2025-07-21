@@ -50,7 +50,7 @@ def setplace(message):
                 bot.send_message(message.chat.id, "Место, выбранное вами не было найдено.\nУстановленны координаты 0, 0")
                 longitude, latitude = 0, 0
                 return None
-            bot.send_message(message.chat.id, f"Местоположение было успешно установлено!\nВаши координаты: {latitude} (ширина), {longitude} (долгота)")
+            bot.send_message(message.chat.id, f"Местоположение было успешно установлено!\nВаши координаты: {latitude} (широта), {longitude} (долгота)")
         case _:
             bot.send_message(message.chat.id, "Вы должны указать лишь один аргумент!")
 
