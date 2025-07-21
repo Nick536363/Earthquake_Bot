@@ -2,7 +2,6 @@ from requests import get
 from datetime import date, datetime
 from geopy import distance
 from os import environ
-from dotenv import load_dotenv, find_dotenv
 
 
 def get_coords(place: str, apikey: str):
@@ -15,10 +14,10 @@ def get_coords(place: str, apikey: str):
     }
     response = get(url=url, params=params)
     response.raise_for_status()
-    most_relevant = response.json()['response']['GeoObjectCollection']['featureMember'][0]
-    if not most_relevant:
+    most_relevant = response.json()['response']['GeoObjectCollection']['featureMember']
+    if not len(most_relevant):
         return None, None
-    lon, lat = most_relevant['GeoObject']['Point']['pos'].split(" ")
+    lon, lat = most_relevant[0]['GeoObject']['Point']['pos'].split(" ")
     return lon, lat
 
 
@@ -65,7 +64,6 @@ def get_earthquakes(starttime: str, endtime: str, latitude: int, longitude: int)
 def find_last_earthquakes(place: str, days_ago=1):
     # Получение всех данных и формирование сообщения для отправки
     load_dotenv(find_dotenv())
-    yandex_api_key = environ["YANDEX_API"]
     longitude, latitude = get_coords(place, apikey=yandex_api_key)
     if not latitude or not longitude:
         return None
