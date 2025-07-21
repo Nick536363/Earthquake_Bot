@@ -17,7 +17,7 @@ def get_coords(place: str, apikey: str):
     response.raise_for_status()
     most_relevant = response.json()['response']['GeoObjectCollection']['featureMember'][0]
     if not most_relevant:
-        return None
+        return 0, 0
     lon, lat = most_relevant['GeoObject']['Point']['pos'].split(" ")
     return lon, lat
 
