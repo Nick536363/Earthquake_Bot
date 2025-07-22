@@ -28,7 +28,7 @@ def dist_compare(usr_lat: int, usr_lon: int, event_lat: int, event_lon: int):
     return round(distance.distance(user_coords, event_coords).km)
 
 
-def get_earthquakes(starttime: str, endtime: str, latitude: int, longitude: int):
+def get_earthquakes(starttime: str, endtime: str, latitude: int, longitude: int, maxradius: int):
     # Получение данных о последних землетрясениях
     data = []
     url = "https://earthquake.usgs.gov/fdsnws/event/1/query"
@@ -39,7 +39,7 @@ def get_earthquakes(starttime: str, endtime: str, latitude: int, longitude: int)
         "endtime":endtime,
         "latitude": latitude,
         "longitude": longitude,
-        "maxradiuskm": 20001,
+        "maxradiuskm": maxradius,
     }
     response = get(url=url, params=params)
     response.raise_for_status()
@@ -60,8 +60,8 @@ def get_earthquakes(starttime: str, endtime: str, latitude: int, longitude: int)
     return data
 
 
-def find_last_earthquakes(lat: float, lon: float, days_ago: int):
+def find_last_earthquakes(lat: float, lon: float, days_ago: int, maxradius=3000):
     # Получение всех данных и формирование сообщения для отправки
-    last_earthquakes = get_earthquakes(f"{date.today().year}-{date.today().month}-{date.today().day-days_ago}", date.today(), lat, lon)
+    last_earthquakes = get_earthquakes(f"{date.today().year}-{date.today().month}-{date.today().day-days_ago}", date.today(), lat, lon, maxradius)
     return last_earthquakes
 
