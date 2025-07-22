@@ -43,7 +43,7 @@ def setplace(message):
     global latitude, longitude
     args =  message.text.split(" ")
     qargs = len(args) - 1
-    
+
     match qargs:
         case 0:
             bot.send_message(message.chat.id, "Вы должны указать название своего населенного пункта!")
@@ -72,6 +72,7 @@ def setradius(message):
                 bot.send_message(message.chat.id, "Вы должны ввести число!")
                 return None
             radius = int(args[1])
+            bot.send_message(message.chat.id, f"Успешно установлен радиус на значение {radius} километров!")
         case _:
             bot.send_message(message.chat.id, "Вы должны указать лишь один аргумент!")
 
