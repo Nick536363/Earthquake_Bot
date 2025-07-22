@@ -62,12 +62,12 @@ def get_last_earthquakes(message):
         bot.send_message(message.chat.id, f"""
 {earthquake["title"]}
 
-Место события -> {earthquake["place"]}
-Время события -> {earthquake["date"]}
-Расстояние до пользователя ->  {earthquake["distance"]} км
+🚩 Место события -> {earthquake["place"]}
+🕘 Время события -> {earthquake["date"]}
+↔️ Расстояние до пользователя ->  {earthquake["distance"]} км
 
-Географическая широта -> {earthquake["latitude"]}
-Географическая долгота -> {earthquake["longitude"]}
+🌐↔️ Географическая широта -> {earthquake["latitude"]}
+🌐↕ Географическая долгота -> {earthquake["longitude"]}
                 """, reply_markup=markup)
 
 
@@ -76,7 +76,7 @@ def start(message):
     markup = types.ReplyKeyboardMarkup()
     setplace_button = types.KeyboardButton("📍 Установить местоположение") 
     setradius_button = types.KeyboardButton("⭕ Установить радиус поиска")
-    fetch_button = types.KeyboardButton("🌎 Найти землетрясения")
+    fetch_button = types.KeyboardButton("🔎 Найти землетрясения")
     info_button = types.KeyboardButton("ℹ️ Информация о проекте")
     markup.add(setplace_button, setradius_button, fetch_button, info_button)
     bot.send_message(message.chat.id, """
@@ -128,7 +128,7 @@ def func_allocator(message):
             setplace(message)
         case "⭕ Установить радиус поиска":
             setradius(message)
-        case "🌎 Найти землетрясения":
+        case "🔎 Найти землетрясения":
             fetch(message)
         case "ℹ️ Информация о проекте":
             info(message)
