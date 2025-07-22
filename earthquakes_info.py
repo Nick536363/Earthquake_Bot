@@ -60,7 +60,7 @@ def get_earthquakes(starttime: str, endtime: str, latitude: int, longitude: int,
     return data
 
 
-def find_last_earthquakes(lat: float, lon: float, days_ago: int, maxradius=3000):
+def find_last_earthquakes(lat: float, lon: float, days_ago: int, maxradius: int):
     # Получение всех данных и формирование сообщения для отправки
     last_earthquakes = get_earthquakes(f"{date.today().year}-{date.today().month}-{date.today().day-days_ago}", date.today(), lat, lon, maxradius)
     return last_earthquakes
