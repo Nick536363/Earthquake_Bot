@@ -25,7 +25,6 @@ def dist_compare(usr_lat: int, usr_lon: int, event_lat: int, event_lon: int):
     # Сравнение координат и получние дистанции между ними
     user_coords = (usr_lat, usr_lon)
     event_coords = (event_lat, event_lon)
-    print(user_coords, "\n", event_coords)
     return round(distance.distance(user_coords, event_coords).km)
 
 
