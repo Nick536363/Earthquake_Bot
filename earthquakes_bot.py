@@ -43,6 +43,7 @@ def setplace(message):
     global latitude, longitude
     args =  message.text.split(" ")
     qargs = len(args) - 1
+    
     match qargs:
         case 0:
             bot.send_message(message.chat.id, "Вы должны указать название своего населенного пункта!")
@@ -62,6 +63,7 @@ def setradius(message):
     global radius
     args = message.text.split(" ")
     qargs = len(args) - 1
+
     match qargs:
         case 0:
             bot.send_message(message.chat.id, f"Так как радиус не был указан, было задано значение по умолчанию ({radius} км)")
@@ -79,6 +81,7 @@ def fetch(message):
     global latitude, longitude, radius
     args = message.text.split(" ")
     qargs = len(args) - 1
+
     match qargs:
         case 0:
             bot.send_message(message.chat.id, "Вы должны указать за сколько последних дней искать землетрясения!")
@@ -86,7 +89,13 @@ def fetch(message):
             if not args[1].isdigit():
                 bot.send_message(message.chat.id, "Вы должны ввести число!")
                 return None
+
             earthquakes = find_last_earthquakes(latitude, longitude, int(args[1]), radius)
+
+            if not len(earthquakes):
+                bot.send_message(message.chat.id, "Не было найдено землетрясений по критериям пользователя")
+                return None
+
             bot.send_message(message.chat.id, "Ниже приведен список найденных землетрясений:")
             for earthquake in earthquakes:
                 markup = types.InlineKeyboardMarkup()
