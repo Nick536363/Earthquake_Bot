@@ -73,6 +73,12 @@ def get_last_earthquakes(message):
 
 @bot.message_handler(commands=["start", "help"])
 def start(message):
+    markup = types.ReplyKeyboardMarkup()
+    setplace_button = types.KeyboardButton("Установить местоположение")
+    setradius_button = types.KeyboardButton("Установить радиус поиска")
+    fetch_button = types.KeyboardButton("Найти землетрясения")
+    info_button = types.KeyboardButton("Информация о проекте")
+    markup.add(setplace_button, setradius_button, fetch_button, info_button)
     bot.send_message(message.chat.id, """
     Список доступных комманд:
 
@@ -81,7 +87,7 @@ def start(message):
 /fetch -> получить землетрясения за последнее время
 /info -> информация о проекте
 /help либо /start -> вывод данного сообщения
-    """)
+    """, reply_markup=markup)
 
 
 @bot.message_handler(commands=["info"])
