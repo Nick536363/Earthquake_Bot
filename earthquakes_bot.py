@@ -40,7 +40,7 @@ def info(message):
 def setplace(message):
     global latitude, longitude
     args =  message.text.split(" ")
-    qargs = len(args)-1
+    qargs = len(args) - 1
     match qargs:
         case 0:
             bot.send_message(message.chat.id, "Вы должны указать название своего населенного пункта!")
@@ -53,6 +53,33 @@ def setplace(message):
             bot.send_message(message.chat.id, f"Местоположение было успешно установлено!\nВаши координаты: {latitude} (широта), {longitude} (долгота)")
         case _:
             bot.send_message(message.chat.id, "Вы должны указать лишь один аргумент!")
+
+
+@bot.message_handler(commands=["fetch"])
+def fetch(message):
+    global latitude, longitude
+    args = message.text.split(" ")
+    qargs = len(args) - 1
+    match qargs:
+        case 0:
+            bot.send_message(message.chat.id, "Вы должны указать за сколько последних дней искать землетрясения!")
+        case 1:
+            earthquakes = find_last_earthquakes(latitude, longitude, int(args[1]))
+            bot.send_message(message.chat.id, "Ниже приведен список найденных землетрясений:")
+            for earthquake in earthquakes:
+                markup = types.InlineKeyboardMarkup()
+                button = types.InlineKeyboardButton(text="Карта местности проишествия", url = earthquake["map"])
+                markup.add(button)
+                bot.send_message(message.chat.id, f"""
+                {earthquake["title"]}
+
+Место события -> {earthquake["place"]}
+Время события -> {earthquake["date"]}
+Расстояние до пользователя ->  {earthquake["distance"]} км
+
+Географическая широта -> {earthquake["latitude"]}
+Географическая долгота -> {earthquake["longitude"]}
+                """, reply_markup=markup)
 
 
 def bot_loop():
