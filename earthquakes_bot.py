@@ -83,6 +83,9 @@ def fetch(message):
         case 0:
             bot.send_message(message.chat.id, "Вы должны указать за сколько последних дней искать землетрясения!")
         case 1:
+            if not args[1].isdigit():
+                bot.send_message(message.chat.id, "Вы должны ввести число!")
+                return None
             earthquakes = find_last_earthquakes(latitude, longitude, int(args[1]), radius)
             bot.send_message(message.chat.id, "Ниже приведен список найденных землетрясений:")
             for earthquake in earthquakes:
@@ -99,6 +102,8 @@ def fetch(message):
 Географическая широта -> {earthquake["latitude"]}
 Географическая долгота -> {earthquake["longitude"]}
                 """, reply_markup=markup)
+        case _:
+            bot.send_message(message.chat.id, "Вы должны указать лишь один аргумент!")
 
 
 def bot_loop():
