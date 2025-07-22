@@ -121,6 +121,20 @@ def fetch(message):
     bot.register_next_step_handler(message, get_last_earthquakes)
 
 
+@bot.message_handler(content_types="text")
+def func_allocator(message):
+    match message.text:
+        case "Установить местоположение":
+            setplace(message)
+        case "Установить радиус поиска":
+            setradius(message)
+        case "Найти землетрясения":
+            fetch(message)
+        case "Информация о проекте":
+            info(message)
+        case _:
+            bot.send_message(message.chat.id, "Не найдено такой команды!")
+
 def bot_loop():
     bot.polling(none_stop=True)
 
