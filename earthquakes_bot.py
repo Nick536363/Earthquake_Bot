@@ -60,7 +60,7 @@ def get_last_earthquakes(message):
         button = types.InlineKeyboardButton(text="🗺 Карта местности проишествия", url = earthquake["map"])
         markup.add(button)
         bot.send_message(message.chat.id, f"""
-{earthquake["title"]}
+📝 {earthquake["title"]}
 
 🚩 Место события -> {earthquake["place"]}
 🕘 Время события -> {earthquake["date"]}
