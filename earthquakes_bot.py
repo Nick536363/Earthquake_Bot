@@ -9,6 +9,7 @@ telegram_bot_token = environ["TELEGRAM_API"]
 yandex_api_key = environ["YANDEX_API"]
 bot = TeleBot(telegram_bot_token)
 longitude, latitude = 0, 0
+radius = 3000
 
 
 @bot.message_handler(commands=["start", "help"])
@@ -16,10 +17,11 @@ def start(message):
     bot.send_message(message.chat.id, """
     Список доступных комманд:
 
-/setplace - установить своё местоположение
-/fetch - получить землетрясения за последнее время
-/info - информация о проекте
-/help либо /start - вывод данного сообщения
+/setplace -> установить своё местоположение (по умолчанию Остров Ноль)
+/setradius -> установить радиус в километрах поиска землетрясений (по умолчанию 3000)
+/fetch -> получить землетрясения за последнее время
+/info -> информация о проекте
+/help либо /start -> вывод данного сообщения
     """)
 
 
@@ -55,16 +57,33 @@ def setplace(message):
             bot.send_message(message.chat.id, "Вы должны указать лишь один аргумент!")
 
 
+@bot.message_handler(commands=["setradius"])
+def setradius(message):
+    global radius
+    args = message.text.split(" ")
+    qargs = len(args) - 1
+    match qargs:
+        case 0:
+            bot.send_message(message.chat.id, f"Так как радиус не был указан, было задано значение по умолчанию ({radius} км)")
+        case 1:
+            if not args[1].isdigit():
+                bot.send_message(message.chat.id, "Вы должны ввести число!")
+                return None
+            radius = int(args[1])
+        case _:
+            bot.send_message(message.chat.id, "Вы должны указать лишь один аргумент!")
+
+
 @bot.message_handler(commands=["fetch"])
 def fetch(message):
-    global latitude, longitude
+    global latitude, longitude, radius
     args = message.text.split(" ")
     qargs = len(args) - 1
     match qargs:
         case 0:
             bot.send_message(message.chat.id, "Вы должны указать за сколько последних дней искать землетрясения!")
         case 1:
-            earthquakes = find_last_earthquakes(latitude, longitude, int(args[1]))
+            earthquakes = find_last_earthquakes(latitude, longitude, int(args[1]), radius)
             bot.send_message(message.chat.id, "Ниже приведен список найденных землетрясений:")
             for earthquake in earthquakes:
                 markup = types.InlineKeyboardMarkup()
