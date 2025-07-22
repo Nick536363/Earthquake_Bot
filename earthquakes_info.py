@@ -61,12 +61,9 @@ def get_earthquakes(starttime: str, endtime: str, latitude: int, longitude: int)
     return data
 
 
-def find_last_earthquakes(place: str, days_ago=1):
+def find_last_earthquakes(lat: float, lon: float, days_ago=1):
     # Получение всех данных и формирование сообщения для отправки
     load_dotenv(find_dotenv())
-    longitude, latitude = get_coords(place, apikey=yandex_api_key)
-    if not latitude or not longitude:
-        return None
-    last_earthquakes = get_earthquakes(f"{date.today().year}-{date.today().month}-{date.today().day-days_ago}", date.today(), latitude, longitude)
+    last_earthquakes = get_earthquakes(f"{date.today().year}-{date.today().month}-{date.today().day-days_ago}", date.today(), lat, lon)
     return last_earthquakes
 
