@@ -57,7 +57,7 @@ def get_last_earthquakes(message):
     bot.send_message(message.chat.id, "Ниже приведен список найденных землетрясений:")
     for earthquake in earthquakes:
         markup = types.InlineKeyboardMarkup()
-        button = types.InlineKeyboardButton(text="Карта местности проишествия", url = earthquake["map"])
+        button = types.InlineKeyboardButton(text="🗺 Карта местности проишествия", url = earthquake["map"])
         markup.add(button)
         bot.send_message(message.chat.id, f"""
 {earthquake["title"]}
@@ -74,10 +74,10 @@ def get_last_earthquakes(message):
 @bot.message_handler(commands=["start", "help"])
 def start(message):
     markup = types.ReplyKeyboardMarkup()
-    setplace_button = types.KeyboardButton("Установить местоположение")
-    setradius_button = types.KeyboardButton("Установить радиус поиска")
-    fetch_button = types.KeyboardButton("Найти землетрясения")
-    info_button = types.KeyboardButton("Информация о проекте")
+    setplace_button = types.KeyboardButton("📍 Установить местоположение") 
+    setradius_button = types.KeyboardButton("⭕ Установить радиус поиска")
+    fetch_button = types.KeyboardButton("🌎 Найти землетрясения")
+    info_button = types.KeyboardButton("ℹ️ Информация о проекте")
     markup.add(setplace_button, setradius_button, fetch_button, info_button)
     bot.send_message(message.chat.id, """
     Список доступных комманд:
@@ -93,7 +93,7 @@ def start(message):
 @bot.message_handler(commands=["info"])
 def info(message):
     markup = types.InlineKeyboardMarkup()
-    button = types.InlineKeyboardButton(text="Ссылка на репозиторий", url = "https://github.com/Nick536363/Earthquake_Bot")
+    button = types.InlineKeyboardButton(text="📩 Ссылка на репозиторий", url = "https://github.com/Nick536363/Earthquake_Bot")
     markup.add(button)
     bot.send_message(message.chat.id, """
     Информация о проекте:
@@ -124,13 +124,13 @@ def fetch(message):
 @bot.message_handler(content_types="text")
 def func_allocator(message):
     match message.text:
-        case "Установить местоположение":
+        case "📍 Установить местоположение":
             setplace(message)
-        case "Установить радиус поиска":
+        case "⭕ Установить радиус поиска":
             setradius(message)
-        case "Найти землетрясения":
+        case "🌎 Найти землетрясения":
             fetch(message)
-        case "Информация о проекте":
+        case "ℹ️ Информация о проекте":
             info(message)
         case _:
             bot.send_message(message.chat.id, "Не найдено такой команды!")
