@@ -11,6 +11,65 @@ bot = TeleBot(telegram_bot_token)
 longitude, latitude = 0, 0
 radius = 3000
 
+def get_users_coords(message):
+    global latitude, longitude
+    place = message.text
+    longitude, latitude = get_coords(place, yandex_api_key)
+    if not longitude or not latitude:
+        bot.send_message(message.chat.id, "Место не было найдено!\nУстановлены координаты по умолчанию (0, 0)")
+        longitude, latitude = 0, 0
+        return None
+    bot.send_message(message.chat.id, f"Координаты успешно установлены!\n{latitude} (широта), {longitude} (долгота)")
+
+
+def get_search_radius(message):
+    global radius
+    argument = message.text
+    if len(argument.split()) > 1:
+        bot.send_message(message.chat.id, "Вы должны указать только одно число!")
+        return None
+    elif not argument.isdigit():
+        bot.send_message(message.chat.id, "Вы должны указать число!")
+        return None
+    elif int(argument) > 20001:
+        bot.send_message(message.chat.id, "Максимальный радиус - 21.000 км!")
+        return None
+    radius = int(argument)
+    bot.send_message(message.chat.id, f"Радиус поиска установлен на значение {radius} км.")
+
+
+def get_last_earthquakes(message):
+    global longitude, latitude, radius
+    argument = message.text
+    if len(argument.split()) > 1:
+        bot.send_message(message.chat.id, "Вы должны указать только одно число!")
+        return None
+    elif not argument.isdigit():
+        bot.send_message(message.chat.id, "Вы должны указать число!")
+        return None
+
+    earthquakes = find_last_earthquakes(latitude, longitude, int(argument), radius)
+
+    if not len(earthquakes):
+        bot.send_message(message.chat.id, "Не было найдено землетрясений по критериям пользователя")
+        return None
+
+    bot.send_message(message.chat.id, "Ниже приведен список найденных землетрясений:")
+    for earthquake in earthquakes:
+        markup = types.InlineKeyboardMarkup()
+        button = types.InlineKeyboardButton(text="Карта местности проишествия", url = earthquake["map"])
+        markup.add(button)
+        bot.send_message(message.chat.id, f"""
+{earthquake["title"]}
+
+Место события -> {earthquake["place"]}
+Время события -> {earthquake["date"]}
+Расстояние до пользователя ->  {earthquake["distance"]} км
+
+Географическая широта -> {earthquake["latitude"]}
+Географическая долгота -> {earthquake["longitude"]}
+                """, reply_markup=markup)
+
 
 @bot.message_handler(commands=["start", "help"])
 def start(message):
@@ -40,80 +99,20 @@ def info(message):
 
 @bot.message_handler(commands=["setplace"])
 def setplace(message):
-    global latitude, longitude
-    args =  message.text.split(" ")
-    qargs = len(args) - 1
-
-    match qargs:
-        case 0:
-            bot.send_message(message.chat.id, "Вы должны указать название своего населенного пункта!")
-        case 1:
-            longitude, latitude = get_coords(args[1], yandex_api_key)
-            if not longitude or not latitude:
-                bot.send_message(message.chat.id, "Место, выбранное вами не было найдено.\nУстановленны координаты 0, 0")
-                longitude, latitude = 0, 0
-                return None
-            bot.send_message(message.chat.id, f"Местоположение было успешно установлено!\nВаши координаты: {latitude} (широта), {longitude} (долгота)")
-        case _:
-            bot.send_message(message.chat.id, "Вы должны указать лишь один аргумент!")
-
+    bot.send_message(message.chat.id, "Пожалуйста, введите название своего населенного пункта (город, поселок, деревня и т.п.).")
+    bot.register_next_step_handler(message, get_users_coords)
+    
 
 @bot.message_handler(commands=["setradius"])
 def setradius(message):
-    global radius
-    args = message.text.split(" ")
-    qargs = len(args) - 1
-
-    match qargs:
-        case 0:
-            bot.send_message(message.chat.id, f"Так как радиус не был указан, было задано значение по умолчанию ({radius} км)")
-        case 1:
-            if not args[1].isdigit():
-                bot.send_message(message.chat.id, "Вы должны ввести число!")
-                return None
-            radius = int(args[1])
-            bot.send_message(message.chat.id, f"Успешно установлен радиус на значение {radius} километров!")
-        case _:
-            bot.send_message(message.chat.id, "Вы должны указать лишь один аргумент!")
+    bot.send_message(message.chat.id, "Пожалуйста, введите радиус поиска землетрясения в километрах (20.001 максимально)")
+    bot.register_next_step_handler(message, get_search_radius)
 
 
 @bot.message_handler(commands=["fetch"])
 def fetch(message):
-    global latitude, longitude, radius
-    args = message.text.split(" ")
-    qargs = len(args) - 1
-
-    match qargs:
-        case 0:
-            bot.send_message(message.chat.id, "Вы должны указать за сколько последних дней искать землетрясения!")
-        case 1:
-            if not args[1].isdigit():
-                bot.send_message(message.chat.id, "Вы должны ввести число!")
-                return None
-
-            earthquakes = find_last_earthquakes(latitude, longitude, int(args[1]), radius)
-
-            if not len(earthquakes):
-                bot.send_message(message.chat.id, "Не было найдено землетрясений по критериям пользователя")
-                return None
-
-            bot.send_message(message.chat.id, "Ниже приведен список найденных землетрясений:")
-            for earthquake in earthquakes:
-                markup = types.InlineKeyboardMarkup()
-                button = types.InlineKeyboardButton(text="Карта местности проишествия", url = earthquake["map"])
-                markup.add(button)
-                bot.send_message(message.chat.id, f"""
-                {earthquake["title"]}
-
-Место события -> {earthquake["place"]}
-Время события -> {earthquake["date"]}
-Расстояние до пользователя ->  {earthquake["distance"]} км
-
-Географическая широта -> {earthquake["latitude"]}
-Географическая долгота -> {earthquake["longitude"]}
-                """, reply_markup=markup)
-        case _:
-            bot.send_message(message.chat.id, "Вы должны указать лишь один аргумент!")
+    bot.send_message(message.chat.id, "Пожалуйста, укажите за сколько последних дней вы хотите найти землетрясения")
+    bot.register_next_step_handler(message, get_last_earthquakes)
 
 
 def bot_loop():
