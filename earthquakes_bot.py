@@ -84,8 +84,8 @@ def start(message):
     setradius_button = types.KeyboardButton("⭕ Установить радиус поиска")
     fetch_button = types.KeyboardButton("🌎 Найти землетрясения")
     info_button = types.KeyboardButton("ℹ️ Информация о проекте")
-    track_button = types.KeyboardButton("🔎 Отслеживать новые землетрясения")
-    untrack_button = types.KeyboardButton("❌ Перестать отслеживать землетрясения")
+    track_button = types.KeyboardButton("🔎 Отслеживать землетрясения")
+    untrack_button = types.KeyboardButton("❌ Не отслеживать землетрясения")
     markup.add(setplace_button, setradius_button, fetch_button, track_button, untrack_button, info_button)
     bot.send_message(message.chat.id, """
     Список доступных комманд:
@@ -165,9 +165,9 @@ def func_allocator(message):
             fetch(message)
         case "ℹ️ Информация о проекте":
             info(message)
-        case "🔎 Отслеживать новые землетрясения":
+        case "🔎 Отслеживать землетрясения":
             track(message)
-        case "❌ Перестать отслеживать землетрясения":
+        case "❌ Не отслеживать землетрясения":
             untrack(message)
         case _:
             bot.send_message(message.chat.id, "Не найдено такой команды!")
