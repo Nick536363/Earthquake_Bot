@@ -1,7 +1,7 @@
 from telebot import TeleBot, types
 from dotenv import load_dotenv, find_dotenv
 from os import environ
-from earthquakes_info import find_last_earthquakes, get_coords
+from earthquakes_info import find_last_earthquakes, track_new_earthquakes, get_coords
 
 
 load_dotenv(find_dotenv())
@@ -10,6 +10,24 @@ yandex_api_key = environ["YANDEX_API"]
 bot = TeleBot(telegram_bot_token)
 longitude, latitude = 0, 0
 radius = 3000
+tracking_new_eq = False
+
+
+def send_eq_data(message, earthquake: dict):
+    markup = types.InlineKeyboardMarkup()
+    button = types.InlineKeyboardButton(text="🗺 Карта местности проишествия", url = earthquake["map"])
+    markup.add(button)
+    bot.send_message(message.chat.id, f"""
+📝 {earthquake["title"]}
+
+🚩 Место события -> {earthquake["place"]}
+🕘 Время события -> {earthquake["date"]}
+↔️ Расстояние до пользователя ->  {earthquake["distance"]} км
+
+🌐↔️ Географическая широта -> {earthquake["latitude"]}
+🌐↕ Географическая долгота -> {earthquake["longitude"]}
+                """, reply_markup=markup)
+
 
 def get_users_coords(message):
     global latitude, longitude
@@ -56,19 +74,7 @@ def get_last_earthquakes(message):
 
     bot.send_message(message.chat.id, "Ниже приведен список найденных землетрясений:")
     for earthquake in earthquakes:
-        markup = types.InlineKeyboardMarkup()
-        button = types.InlineKeyboardButton(text="🗺 Карта местности проишествия", url = earthquake["map"])
-        markup.add(button)
-        bot.send_message(message.chat.id, f"""
-📝 {earthquake["title"]}
-
-🚩 Место события -> {earthquake["place"]}
-🕘 Время события -> {earthquake["date"]}
-↔️ Расстояние до пользователя ->  {earthquake["distance"]} км
-
-🌐↔️ Географическая широта -> {earthquake["latitude"]}
-🌐↕ Географическая долгота -> {earthquake["longitude"]}
-                """, reply_markup=markup)
+        send_eq_data(message, earthquake)
 
 
 @bot.message_handler(commands=["start", "help"])
@@ -76,9 +82,11 @@ def start(message):
     markup = types.ReplyKeyboardMarkup()
     setplace_button = types.KeyboardButton("📍 Установить местоположение") 
     setradius_button = types.KeyboardButton("⭕ Установить радиус поиска")
-    fetch_button = types.KeyboardButton("🔎 Найти землетрясения")
+    fetch_button = types.KeyboardButton("🌎 Найти землетрясения")
     info_button = types.KeyboardButton("ℹ️ Информация о проекте")
-    markup.add(setplace_button, setradius_button, fetch_button, info_button)
+    track_button = types.KeyboardButton("🔎 Отслеживать новые землетрясения")
+    untrack_button = types.KeyboardButton("❌ Перестать отслеживать землетрясения")
+    markup.add(setplace_button, setradius_button, fetch_button, track_button, untrack_button, info_button)
     bot.send_message(message.chat.id, """
     Список доступных комманд:
 
@@ -121,6 +129,31 @@ def fetch(message):
     bot.register_next_step_handler(message, get_last_earthquakes)
 
 
+@bot.message_handler(commands=["track"])
+def track(message):
+    global latitude, longitude, radius, tracking_new_eq
+    if tracking_new_eq:
+        bot.send_message(message.chat.id, "Вы уже отслеживаете новые землетрясения!")
+        return None
+    tracking_new_eq = True
+    bot.send_message(message.chat.id, "Теперь новые землетрясения будут приходить Вам!")
+    while tracking_new_eq:
+        new_earthquakes = track_new_earthquakes(latitude, longitude, radius, tracking_new_eq)
+        bot.send_message(message.chat.id, "Новое событие!")
+        for earthquake in new_earthquakes:
+            send_eq_data(message, earthquake)
+
+
+@bot.message_handler(commands=["untrack"])
+def untrack(message):
+    global tracking_new_eq
+    if not tracking_new_eq:
+        bot.send_message(message.chat.id, "Вы не отслеживаете новые землетрясения!")
+        return None
+    tracking_new_eq = False
+    bot.send_message(message.chat.id, "Теперь вы не отслеживаете новые землетрясения!")
+
+
 @bot.message_handler(content_types="text")
 def func_allocator(message):
     match message.text:
@@ -128,10 +161,14 @@ def func_allocator(message):
             setplace(message)
         case "⭕ Установить радиус поиска":
             setradius(message)
-        case "🔎 Найти землетрясения":
+        case "🌎 Найти землетрясения":
             fetch(message)
         case "ℹ️ Информация о проекте":
             info(message)
+        case "🔎 Отслеживать новые землетрясения":
+            track(message)
+        case "❌ Перестать отслеживать землетрясения":
+            untrack(message)
         case _:
             bot.send_message(message.chat.id, "Не найдено такой команды!")
 

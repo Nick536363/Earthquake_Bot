@@ -2,6 +2,7 @@ from requests import get
 from datetime import date, datetime
 from geopy import distance
 from os import environ
+from time import sleep
 
 
 def get_coords(place: str, apikey: str):
@@ -46,7 +47,7 @@ def get_earthquakes(starttime: str, endtime: str, latitude: int, longitude: int,
     for event in response.json()["features"]:
         event_latitude = event["geometry"]["coordinates"][1]
         event_longitude = event["geometry"]["coordinates"][0]
-        formatted_date = datetime.fromtimestamp(event["properties"]["time"]/1000).strftime("%Y-%m-%d %H:%M:%S") #event["properties"]["time"]
+        formatted_date = datetime.fromtimestamp(event["properties"]["time"]/1000).strftime("%Y-%m-%d %H:%M:%S")
         data.append({
             "title": event["properties"]["title"],
             "place": event["properties"]["place"],
@@ -65,3 +66,14 @@ def find_last_earthquakes(lat: float, lon: float, days_ago: int, maxradius: int)
     last_earthquakes = get_earthquakes(f"{date.today().year}-{date.today().month}-{date.today().day-days_ago}", date.today(), lat, lon, maxradius)
     return last_earthquakes
 
+
+def track_new_earthquakes(lat: float, lon : float, maxradius: int, tracking_new: bool):
+    # Отслеживание последних и новых землетрясений
+    request_delay = 3
+    last_earthquakes = get_earthquakes(date.today(), date.today(), lat, lon,  maxradius)
+    while tracking_new:
+        new_earthquakes = get_earthquakes(date.today(), date.today(), lat, lon,  maxradius)
+        if len(new_earthquakes) > len(last_earthquakes) or len(last_earthquakes) >= 1:
+            return new_earthquakes
+        print(new_earthquakes)
+        sleep(request_delay)
