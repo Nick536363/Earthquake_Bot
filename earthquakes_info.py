@@ -75,5 +75,4 @@ def track_new_earthquakes(lat: float, lon : float, maxradius: int, tracking_new:
         new_earthquakes = get_earthquakes(date.today(), date.today(), lat, lon,  maxradius)
         if len(new_earthquakes) > len(last_earthquakes) or len(last_earthquakes) >= 1:
             return new_earthquakes
-        print(new_earthquakes)
         sleep(request_delay)
