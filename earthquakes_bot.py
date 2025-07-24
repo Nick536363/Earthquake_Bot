@@ -14,6 +14,7 @@ tracking_new_eq = False
 
 
 def send_eq_data(message, earthquake: dict):
+    # Отправка сообщения с данными о землетрясении
     markup = types.InlineKeyboardMarkup()
     button = types.InlineKeyboardButton(text="🗺 Карта местности проишествия", url = earthquake["map"])
     markup.add(button)
@@ -30,6 +31,7 @@ def send_eq_data(message, earthquake: dict):
 
 
 def get_users_coords(message):
+    # Установка координат с помощью функции из earthquakes_info.py
     global latitude, longitude
     place = message.text
     longitude, latitude = get_coords(place, yandex_api_key)
@@ -41,6 +43,7 @@ def get_users_coords(message):
 
 
 def get_search_radius(message):
+    # Установка значения максимального радиуса
     global radius
     argument = message.text
     if len(argument.split()) > 1:
@@ -57,6 +60,7 @@ def get_search_radius(message):
 
 
 def get_last_earthquakes(message):
+    # Отправка пользователю землетрясений за последние N дней
     global longitude, latitude, radius
     argument = message.text
     if len(argument.split()) > 1:
@@ -77,8 +81,13 @@ def get_last_earthquakes(message):
         send_eq_data(message, earthquake)
 
 
+# Далее в основном идут функции-обработчики. Это значит что дальше в основном будут "триггеры" на команды пользователя, которые вызывают функции приведенные выше.
+# Но также будут и функции-обработчики, которые не вызывают других функций, а делают всё "сами"
+
+
 @bot.message_handler(commands=["start", "help"])
 def start(message):
+    # Функция показывающая все доступные команды и отрисовывающая кнопки
     markup = types.ReplyKeyboardMarkup()
     setplace_button = types.KeyboardButton("📍 Установить местоположение") 
     setradius_button = types.KeyboardButton("⭕ Установить радиус поиска")
@@ -93,6 +102,8 @@ def start(message):
 /setplace -> установить своё местоположение (по умолчанию Остров Ноль)
 /setradius -> установить радиус в километрах поиска землетрясений (по умолчанию 3000)
 /fetch -> получить землетрясения за последнее время
+/track -> отслеживать новые землетрясения
+/untrack -> перестать отслеживать новые землетрясения
 /info -> информация о проекте
 /help либо /start -> вывод данного сообщения
     """, reply_markup=markup)
@@ -100,6 +111,7 @@ def start(message):
 
 @bot.message_handler(commands=["info"])
 def info(message):
+    # Функция показывающая информацию о проекте
     markup = types.InlineKeyboardMarkup()
     button = types.InlineKeyboardButton(text="📩 Ссылка на репозиторий", url = "https://github.com/Nick536363/Earthquake_Bot")
     markup.add(button)
@@ -113,24 +125,28 @@ def info(message):
 
 @bot.message_handler(commands=["setplace"])
 def setplace(message):
+    # Функция для получения названия населенного пункта от пользователя
     bot.send_message(message.chat.id, "Пожалуйста, введите название своего населенного пункта (город, поселок, деревня и т.п.).")
     bot.register_next_step_handler(message, get_users_coords)
     
 
 @bot.message_handler(commands=["setradius"])
 def setradius(message):
+    # Функция для получения максимального радиуса от пользователя
     bot.send_message(message.chat.id, "Пожалуйста, введите радиус поиска землетрясения в километрах (20.001 максимально)")
     bot.register_next_step_handler(message, get_search_radius)
 
 
 @bot.message_handler(commands=["fetch"])
 def fetch(message):
+    # Функция для получения значения от пользователя, за сколько последних дней искать землетрясения 
     bot.send_message(message.chat.id, "Пожалуйста, укажите за сколько последних дней вы хотите найти землетрясения")
     bot.register_next_step_handler(message, get_last_earthquakes)
 
 
 @bot.message_handler(commands=["track"])
 def track(message):
+    # Функция для начала отслеживания землетрясений
     global latitude, longitude, radius, tracking_new_eq
     if tracking_new_eq:
         bot.send_message(message.chat.id, "Вы уже отслеживаете новые землетрясения!")
@@ -146,6 +162,7 @@ def track(message):
 
 @bot.message_handler(commands=["untrack"])
 def untrack(message):
+    # Функция для заканчивания отслеживания землетрясений
     global tracking_new_eq
     if not tracking_new_eq:
         bot.send_message(message.chat.id, "Вы не отслеживаете новые землетрясения!")
@@ -156,6 +173,7 @@ def untrack(message):
 
 @bot.message_handler(content_types="text")
 def func_allocator(message):
+    # Функция обрабатывающая нажатия кнопок и в зависимости от текста, вызывает нужную функцию. Так и называеться, "распределитель функций"
     match message.text:
         case "📍 Установить местоположение":
             setplace(message)
@@ -174,6 +192,7 @@ def func_allocator(message):
 
 
 def bot_loop():
+    # Главный цикл бота
     bot.polling(none_stop=True)
 
 
