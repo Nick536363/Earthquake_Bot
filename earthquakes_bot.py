@@ -172,6 +172,7 @@ def func_allocator(message):
         case _:
             bot.send_message(message.chat.id, "Не найдено такой команды!")
 
+
 def bot_loop():
     bot.polling(none_stop=True)
 

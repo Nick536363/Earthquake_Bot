@@ -37,11 +37,12 @@ def get_earthquakes(starttime: str, endtime: str, latitude: int, longitude: int,
         "format":"geojson",
         "eventtype": "earthquake",
         "starttime":starttime,
-        "endtime":endtime,
         "latitude": latitude,
         "longitude": longitude,
         "maxradiuskm": maxradius,
     }
+    if endtime:
+        params["endtime"] = endtime
     response = get(url=url, params=params)
     response.raise_for_status()
     for event in response.json()["features"]:
@@ -72,7 +73,7 @@ def track_new_earthquakes(lat: float, lon : float, maxradius: int, tracking_new:
     request_delay = 3
     last_earthquakes = get_earthquakes(date.today(), date.today(), lat, lon,  maxradius)
     while tracking_new:
-        new_earthquakes = get_earthquakes(date.today(), date.today(), lat, lon,  maxradius)
+        new_earthquakes = get_earthquakes(date.today(), "", lat, lon,  maxradius)
         if len(new_earthquakes) > len(last_earthquakes) or len(last_earthquakes) >= 1:
             return new_earthquakes
         sleep(request_delay)
