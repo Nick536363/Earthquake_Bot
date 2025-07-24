@@ -16,7 +16,7 @@ tracking_new_eq = False
 def send_eq_data(message, earthquake: dict):
     # Отправка сообщения с данными о землетрясении
     markup = types.InlineKeyboardMarkup()
-    button = types.InlineKeyboardButton(text="🗺 Карта местности проишествия", url = earthquake["map"])
+    button = types.InlineKeyboardButton(text="🗺 Карта события", url = earthquake["map"])
     markup.add(button)
     bot.send_message(message.chat.id, f"""
 📝 {earthquake["title"]}
