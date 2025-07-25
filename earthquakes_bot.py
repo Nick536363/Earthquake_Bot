@@ -198,6 +198,7 @@ def bot_loop():
         bot.polling(none_stop=True)
     except:
         print("Ошибка подключения была подавлена")
+        bot.polling(none_stop=True)
 
 
 if __name__ == "__main__":
