@@ -55,6 +55,7 @@ def get_earthquakes(starttime: str, endtime: str, latitude: int, longitude: int,
             "date": formatted_date,
             "distance": dist_compare(latitude, longitude, event_latitude, event_longitude),
             "map": f"{event["properties"]["url"]}/map",
+            "region-info": f"{event["properties"]["url"]}/region-info",
             "latitude": event_latitude,
             "longitude": event_longitude
             })
