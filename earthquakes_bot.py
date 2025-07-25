@@ -22,7 +22,7 @@ def send_eq_data(message, earthquake: dict):
 📝 {earthquake["title"]}
 
 🚩 Место события -> {earthquake["place"]}
-🕘 Время события -> {earthquake["date"]}
+🕘 Время события по UTC -> {earthquake["date"]}
 ↔️ Расстояние до пользователя ->  {earthquake["distance"]} км
 
 🌐↔️ Географическая широта -> {earthquake["latitude"]}
@@ -168,7 +168,7 @@ def untrack(message):
         bot.send_message(message.chat.id, "Вы не отслеживаете новые землетрясения!")
         return None
     tracking_new_eq = False
-    bot.send_message(message.chat.id, "Теперь вы не отслеживаете новые землетрясения!")
+    bot.send_message(message.chat.id, "После следующего события вы перестанеет отслеживать землетрясения!")
 
 
 @bot.message_handler(content_types="text")
