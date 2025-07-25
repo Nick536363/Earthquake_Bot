@@ -2,6 +2,7 @@ from telebot import TeleBot, types
 from dotenv import load_dotenv, find_dotenv
 from os import environ
 from earthquakes_info import find_last_earthquakes, track_new_earthquakes, get_coords
+from time import sleep
 
 
 load_dotenv(find_dotenv())
@@ -63,6 +64,7 @@ def get_search_radius(message):
 def get_last_earthquakes(message):
     # Отправка пользователю землетрясений за последние N дней
     global longitude, latitude, radius
+    sending_delay = 1
     argument = message.text
     if len(argument.split()) > 1:
         bot.send_message(message.chat.id, "Вы должны указать только одно число!")
@@ -80,6 +82,7 @@ def get_last_earthquakes(message):
     bot.send_message(message.chat.id, "Ниже приведен список найденных землетрясений:")
     for earthquake in earthquakes:
         send_eq_data(message, earthquake)
+        sleep(sending_delay)
 
 
 # Далее в основном идут функции-обработчики. Это значит что дальше в основном будут "триггеры" на команды пользователя, которые вызывают функции приведенные выше.
@@ -196,7 +199,7 @@ def bot_loop():
     try:
         bot.polling(none_stop=True)
     except:
-        print("Ошибка подключения была подавлена")
+        print("Ошибка была подавлена")
         bot.polling(none_stop=True)
 
 
