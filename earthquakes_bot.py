@@ -119,8 +119,7 @@ def info(message):
     bot.send_message(message.chat.id, """
     Информация о проекте:
 
-Тимлид: Nick536363
-Разработчик бота: yatoro-asu
+Ведущий программист: Nick536363
     """, reply_markup=markup)
 
 
