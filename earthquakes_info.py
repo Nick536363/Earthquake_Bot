@@ -70,12 +70,15 @@ def find_last_earthquakes(lat: float, lon: float, days_ago: int, maxradius: int)
 
 def track_new_earthquakes(lat: float, lon : float, maxradius: int, tracking_new: bool):
     # Отслеживание последних и новых землетрясений
-    request_delay = 3
+    request_delay = 30
     time_now = datetime.now()
-    last_earthquakes = get_earthquakes(f"{date.today()}T{time_now.hour}:{time_now.minute}:{time_now.second}", "", lat, lon,  maxradius)
+    starttime = f"{date.today()}T{time_now.hour}:{time_now.minute}:{time_now.second}"
+    last_earthquakes = get_earthquakes(starttime, "", lat, lon,  maxradius)
     while tracking_new:
         time_now = datetime.now()
-        new_earthquakes = get_earthquakes(f"{date.today()}T{time_now.hour}:{time_now.minute}:{time_now.second}", "", lat, lon,  maxradius)
+        print("Start Time: ",starttime, "\nEnd Time: ", datetime.now())
+        new_earthquakes = get_earthquakes(starttime, "", lat, lon,  maxradius)
+        print("New earthquakes quantity: ",len(new_earthquakes),"\nLast earthquakes quantity", len(last_earthquakes))
         if len(new_earthquakes) > len(last_earthquakes):
             return new_earthquakes
         sleep(request_delay)
