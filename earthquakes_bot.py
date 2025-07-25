@@ -193,7 +193,10 @@ def func_allocator(message):
 
 def bot_loop():
     # Главный цикл бота
-    bot.polling(none_stop=True)
+    try:
+        bot.polling(none_stop=True)
+    except:
+        print("Ошибка подключения была подавлена")
 
 
 if __name__ == "__main__":
