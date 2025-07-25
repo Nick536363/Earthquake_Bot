@@ -76,9 +76,7 @@ def track_new_earthquakes(lat: float, lon : float, maxradius: int, tracking_new:
     last_earthquakes = get_earthquakes(starttime, "", lat, lon,  maxradius)
     while tracking_new:
         time_now = datetime.now()
-        print("Start Time: ",starttime, "\nEnd Time: ", datetime.now())
         new_earthquakes = get_earthquakes(starttime, "", lat, lon,  maxradius)
-        print("New earthquakes quantity: ",len(new_earthquakes),"\nLast earthquakes quantity", len(last_earthquakes))
         if len(new_earthquakes) > len(last_earthquakes):
             return new_earthquakes
         sleep(request_delay)
