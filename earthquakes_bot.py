@@ -72,6 +72,9 @@ def get_last_earthquakes(message):
     elif not argument.isdigit():
         bot.send_message(message.chat.id, "Вы должны указать число!")
         return None
+    elif int(argument) < 1 or int(argument) > 27:
+        bot.send_message(message.chat.id, "Вы должны указать число в диапазоне от 1 до 27!")
+        return None
 
     earthquakes = find_last_earthquakes(latitude, longitude, int(argument), radius)
 
@@ -143,7 +146,7 @@ def setradius(message):
 @bot.message_handler(commands=["fetch"])
 def fetch(message):
     # Функция для получения значения от пользователя, за сколько последних дней искать землетрясения 
-    bot.send_message(message.chat.id, "Пожалуйста, укажите за сколько последних дней вы хотите найти землетрясения")
+    bot.send_message(message.chat.id, "Пожалуйста, укажите за сколько последних дней вы хотите найти землетрясения (максимально 27)")
     bot.register_next_step_handler(message, get_last_earthquakes)
 
 
@@ -198,9 +201,11 @@ def bot_loop():
     # Главный цикл бота
     try:
         bot.polling(none_stop=True)
+    except KeyboardInterrupt:
+        exit()
     except:
-        print("Ошибка была подавлена")
-        bot.polling(none_stop=True)
+        print("Ошибка была подавлена!")
+        bot_loop()
 
 
 if __name__ == "__main__":
