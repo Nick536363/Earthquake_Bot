@@ -11,7 +11,7 @@ yandex_api_key = environ["YANDEX_API"]
 bot = TeleBot(telegram_bot_token)
 longitude, latitude = 0, 0
 radius = 3000
-tracking_new_eq = False
+users_settings = {}
 
 
 def send_eq_data(message, earthquake: dict):
@@ -34,19 +34,19 @@ def send_eq_data(message, earthquake: dict):
 
 def get_users_coords(message):
     # Установка координат с помощью функции из earthquakes_info.py
-    global latitude, longitude
+    global users_settings
     place = message.text
-    longitude, latitude = get_coords(place, yandex_api_key)
-    if not longitude or not latitude:
+    users_settings[message.chat.id]["longitude"], users_settings[message.chat.id]["latitude"] = get_coords(place, yandex_api_key)
+    if not users_settings[message.chat.id]["longitude"] or not users_settings[message.chat.id]["latitude"]:
         bot.send_message(message.chat.id, "Место не было найдено!\nУстановлены координаты по умолчанию (0, 0)")
-        longitude, latitude = 0, 0
+        users_settings[message.chat.id]["longitude"], users_settings[message.chat.id]["latitude"] = 0, 0
         return None
-    bot.send_message(message.chat.id, f"Координаты успешно установлены!\n{latitude} (широта), {longitude} (долгота)")
+    bot.send_message(message.chat.id, f"Координаты успешно установлены!\n{users_settings[message.chat.id]["latitude"]} (широта), {users_settings[message.chat.id]["longitude"]} (долгота)")
 
 
 def get_search_radius(message):
     # Установка значения максимального радиуса
-    global radius
+    global users_settings
     argument = message.text
     if len(argument.split()) > 1:
         bot.send_message(message.chat.id, "Вы должны указать только одно число!")
@@ -54,16 +54,16 @@ def get_search_radius(message):
     elif not argument.isdigit():
         bot.send_message(message.chat.id, "Вы должны указать число!")
         return None
-    elif int(argument) > 20001:
-        bot.send_message(message.chat.id, "Максимальный радиус - 21.000 км!")
+    elif int(argument) > 20001 or int(argument) < 1:
+        bot.send_message(message.chat.id, "Радиус должен быть в диапазоне от 1 до 20.001 км!")
         return None
-    radius = int(argument)
-    bot.send_message(message.chat.id, f"Радиус поиска установлен на значение {radius} км.")
+    users_settings[message.chat.id]["radius"] = int(argument)
+    bot.send_message(message.chat.id, f"Радиус поиска установлен на значение {int(argument)} км.")
 
 
 def get_last_earthquakes(message):
     # Отправка пользователю землетрясений за последние N дней
-    global longitude, latitude, radius
+    global users_settings
     sending_delay = 1
     argument = message.text
     if len(argument.split()) > 1:
@@ -76,7 +76,7 @@ def get_last_earthquakes(message):
         bot.send_message(message.chat.id, "Вы должны указать число в диапазоне от 1 до 27!")
         return None
 
-    earthquakes = find_last_earthquakes(latitude, longitude, int(argument), radius)
+    earthquakes = find_last_earthquakes(users_settings[message.chat.id]["latitude"], users_settings[message.chat.id]["longitude"], int(argument), users_settings[message.chat.id]["radius"])
 
     if not len(earthquakes):
         bot.send_message(message.chat.id, "Не было найдено землетрясений по критериям пользователя")
@@ -95,6 +95,12 @@ def get_last_earthquakes(message):
 @bot.message_handler(commands=["start", "help"])
 def start(message):
     # Функция показывающая все доступные команды и отрисовывающая кнопки
+    global users_settings
+    users_settings[message.chat.id] = {"tracking": False,
+    "latitude": 0,
+    "longitude": 0,
+    "radius": 3000
+    }
     markup = types.ReplyKeyboardMarkup()
     setplace_button = types.KeyboardButton("📍 Установить местоположение") 
     setradius_button = types.KeyboardButton("⭕ Установить радиус поиска")
@@ -153,14 +159,15 @@ def fetch(message):
 @bot.message_handler(commands=["track"])
 def track(message):
     # Функция для начала отслеживания землетрясений
-    global latitude, longitude, radius, tracking_new_eq
-    if tracking_new_eq:
-        bot.send_message(message.chat.id, "Вы уже отслеживаете новые землетрясения!")
-        return None
-    tracking_new_eq = True
+    global users_settings
+    if message.chat.id in users_settings:
+        if users_settings[message.chat.id]["tracking"]:
+            bot.send_message(message.chat.id, "Вы уже отслеживаете новые землетрясения!")
+            return None
+    users_settings[message.chat.id]["tracking"] = True
     bot.send_message(message.chat.id, "Теперь новые землетрясения будут приходить Вам!")
-    while tracking_new_eq:
-        new_earthquakes = track_new_earthquakes(latitude, longitude, radius, tracking_new_eq)
+    while users_settings[message.chat.id]["tracking"]:
+        new_earthquakes = track_new_earthquakes(users_settings[message.chat.id]["latitude"], users_settings[message.chat.id]["longitude"], users_settings[message.chat.id]["radius"], users_settings[message.chat.id]["tracking"])
         bot.send_message(message.chat.id, "Новое событие!")
         for earthquake in new_earthquakes:
             send_eq_data(message, earthquake)
@@ -169,11 +176,12 @@ def track(message):
 @bot.message_handler(commands=["untrack"])
 def untrack(message):
     # Функция для заканчивания отслеживания землетрясений
-    global tracking_new_eq
-    if not tracking_new_eq:
-        bot.send_message(message.chat.id, "Вы не отслеживаете новые землетрясения!")
-        return None
-    tracking_new_eq = False
+    global users_settings
+    if message.chat.id in users_settings:
+        if not users_settings[message.chat.id]["tracking"]:
+            bot.send_message(message.chat.id, "Вы не новые землетрясения!")
+            return None
+        users_settings[message.chat.id]["tracking"] = False
     bot.send_message(message.chat.id, "После следующего события вы перестанеет отслеживать землетрясения!")
 
 
@@ -203,9 +211,9 @@ def bot_loop():
         bot.polling(none_stop=True)
     except KeyboardInterrupt:
         exit()
-    except:
-        print("Ошибка была подавлена!")
-        bot_loop()
+    # except:
+    #     print("Ошибка была подавлена!")
+    #     bot_loop()
 
 
 if __name__ == "__main__":
