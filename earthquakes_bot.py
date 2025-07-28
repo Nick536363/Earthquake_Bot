@@ -39,6 +39,7 @@ def get_users_coords(message):
     chat_id = message.chat.id
     place = message.text
     users_settings[chat_id]["longitude"], users_settings[chat_id]["latitude"] = get_coords(place, yandex_api_key)
+    users_settings[chat_id]["place"] = place
     if not users_settings[chat_id]["longitude"] or not users_settings[chat_id]["latitude"]:
         bot.send_message(chat_id, "Место не было найдено!\nУстановлены координаты по умолчанию (0, 0)")
         users_settings[chat_id]["longitude"], users_settings[chat_id]["latitude"] = 0, 0
@@ -104,16 +105,18 @@ def start(message):
     users_settings[chat_id] = {"tracking": False,
     "latitude": 0,
     "longitude": 0,
-    "radius": 3000
+    "radius": 3000,
+    "place": "Остров Ноль"
     }
     markup = types.ReplyKeyboardMarkup()
     setplace_button = types.KeyboardButton("📍 Установить местоположение") 
     setradius_button = types.KeyboardButton("⭕ Установить радиус поиска")
     fetch_button = types.KeyboardButton("🌎 Найти землетрясения")
     info_button = types.KeyboardButton("ℹ️ Информация о проекте")
+    settings_button = types.KeyboardButton("⚙️ Конфигурация")
     track_button = types.KeyboardButton("🔎 Отслеживать землетрясения")
     untrack_button = types.KeyboardButton("❌ Не отслеживать землетрясения")
-    markup.add(setplace_button, setradius_button, fetch_button, track_button, untrack_button, info_button)
+    markup.add(setplace_button, setradius_button, fetch_button, track_button, untrack_button, info_button, settings_button)
     bot.send_message(chat_id, """
     Список доступных комманд:
 
@@ -122,6 +125,7 @@ def start(message):
 /fetch -> получить землетрясения за последнее время
 /track -> отслеживать новые землетрясения
 /untrack -> перестать отслеживать новые землетрясения
+/settings -> вывод текующей конфигурации
 /info -> информация о проекте
 /help либо /start -> вывод данного сообщения
     """, reply_markup=markup)
@@ -139,6 +143,23 @@ def info(message):
 
 Ведущий программист: Nick536363
     """, reply_markup=markup)
+
+
+@bot.message_handler(commands=["settings"])
+def settings(message):
+    #  Функция для вывода конфигурации пользователя
+    global users_settings
+    chat_id = message.chat.id
+    bot.send_message(chat_id, f"""
+    Текущая конфигурация:
+
+Местоположение пользователя -> {users_settings[chat_id]["place"]}
+Радиус поиска -> {users_settings[chat_id]["radius"]}
+Отслеживаються ли новые землетрясения -> {"Да" if users_settings[chat_id]["tracking"] else "Нет"}
+Географическая широта пользователя -> {users_settings[chat_id]["latitude"]}
+Географическая долгота пользователя -> {users_settings[chat_id]["longitude"]}
+
+    """)
 
 
 @bot.message_handler(commands=["setplace"])
@@ -212,6 +233,8 @@ def func_allocator(message):
             track(message)
         case "❌ Не отслеживать землетрясения":
             untrack(message)
+        case "⚙️ Конфигурация":
+            settings(message)
         case _:
             bot.send_message(chat_id, "Не найдено такой команды!")
 
