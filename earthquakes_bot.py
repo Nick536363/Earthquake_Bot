@@ -222,9 +222,9 @@ def bot_loop():
         bot.polling(none_stop=True)
     except KeyboardInterrupt:
         exit()
-    # except:
-    #     print("Ошибка была подавлена!")
-    #     bot_loop()
+    except:
+        print("Ошибка была подавлена!")
+        bot_loop()
 
 
 if __name__ == "__main__":
